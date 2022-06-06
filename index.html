@@ -15,30 +15,32 @@
         integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k"
         crossorigin="anonymous"></script>
     <script>
-        const socket = io();
+        const channel = '6288b12c5d332994c09f6417';
+        const socket = io('http://localhost:8088', { query: `userId=${channel}` });
 
         socket.on('connect', () => {
             console.log('Socket Connected', socket.connected);
-            console.log(socket.id);
 
-            const engine = socket.io.engine;
-            console.log(engine.transport.name);
-            engine.once('upgrade', () => {
-                console.log(engine.transport.name);
-            });
+            if (socket.connected) {
+                console.log("Listening on channel " + channel);
 
-            //if(socket.connected){
-            //    socket.emit('QvpolWIt76zz8Fb-AAAD', 'Hello Socket.io!');
-            //}
+                socket.on(channel, (message) => {
+                    console.log(message);
+                });
 
-        socket.volatile.emit('QvpolWIt76zz8Fb-AAAD', 'Hello Socket.io!');
+                socket.emit('subscribe', channel, (response) => {
+                    console.log('Subscribed!');
+                    console.log('Subscribe response ' + JSON.stringify(response));
+                });
+
+                setInterval(() => {
+                    socket.disconnect();
+                }, 10000);
+            }
         });
 
         socket.on('disconnect', (reason) => {
             console.log('Socket Disconnected', reason);
-            if (reason === 'io server disconnect') {
-                //socket.connect();
-            }
         });
 
         socket.io.on('reconnect_attempt', () => {
@@ -50,8 +52,7 @@
         });
 
         socket.on('connect_error', () => {
-            console.log('Socket connect error')
-            //socket.auth.token = 'r8zUbVsBZHbZc82aAAAB';
+            console.log('Socket connect error');
             socket.connect();
         });
     </script>
